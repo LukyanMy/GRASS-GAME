@@ -53,12 +53,10 @@ public class PlayerMono : MonoBehaviour
 
         if (inputDirection != Vector3.zero)
         {
-            // Compute acceleration vector (m/s^2)
             Vector3 accel = inputDirection * speed * speedMultiplier;
             rb.AddForce(accel, ForceMode.Acceleration);
         }
 
-        // Clamp horizontal velocity to maxSpeed * speedMultiplier
         Vector3 vel = rb.linearVelocity;
         Vector3 horizontal = new Vector3(vel.x, 0f, vel.z);
         float currentMax = maxSpeed * speedMultiplier;
