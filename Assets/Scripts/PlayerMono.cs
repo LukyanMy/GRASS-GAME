@@ -10,9 +10,12 @@ public class PlayerMono : MonoBehaviour
     Rigidbody rb;
     public int health = 100;
     public float armor = 1;
-    const float speed = 10f;
+    const float speed = 3f; 
     public int speedMultiplier = 1;
 
+    public float maxSpeed = 5f;
+
+    Vector3 inputDirection = Vector3.zero;
 
     void Start()
     {
@@ -22,8 +25,47 @@ public class PlayerMono : MonoBehaviour
 
     void Update()
     {
-        Vector3 playerInput = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), Input.GetKeyDown("space") ? 0: 1);
-        transform.position = transform.position + playerInput.normalized * speed * Time.deltaTime;
+        Vector3 dir = Vector3.zero;
+        if (Input.GetKey(KeyCode.W))
+        {
+            dir += Vector3.forward;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            dir += Vector3.back;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            dir += Vector3.left;
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            dir += Vector3.right;
+        }
+
+        inputDirection = dir.normalized;
     }
 
+    void FixedUpdate()
+    {
+        if (rb == null)
+            return;
+
+        if (inputDirection != Vector3.zero)
+        {
+            // Compute acceleration vector (m/s^2)
+            Vector3 accel = inputDirection * speed * speedMultiplier;
+            rb.AddForce(accel, ForceMode.Acceleration);
+        }
+
+        // Clamp horizontal velocity to maxSpeed * speedMultiplier
+        Vector3 vel = rb.linearVelocity;
+        Vector3 horizontal = new Vector3(vel.x, 0f, vel.z);
+        float currentMax = maxSpeed * speedMultiplier;
+        if (horizontal.magnitude > currentMax)
+        {
+            Vector3 clampedHorizontal = horizontal.normalized * currentMax;
+            rb.linearVelocity = new Vector3(clampedHorizontal.x, vel.y, clampedHorizontal.z);
+        }
+    }
 }
