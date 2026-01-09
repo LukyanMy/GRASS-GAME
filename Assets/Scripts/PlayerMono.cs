@@ -25,6 +25,8 @@ public class PlayerMono : MonoBehaviour
     private float jumpHoldTimer = 0.5f;
     private bool groundCollided = false;
 
+    private readonly System.Collections.Generic.HashSet<Collider> groundContactColliders = new System.Collections.Generic.HashSet<Collider>();
+
     void Start()
     {
         Debug.Log("Player initialized with health: " + health + " and armor: " + armor * 100);
@@ -130,16 +132,54 @@ public class PlayerMono : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.contacts.Length > 0)
+        if (collision.contacts == null || collision.contacts.Length == 0)
+            return;
+
+        foreach (ContactPoint contact in collision.contacts)
         {
-            foreach (ContactPoint contact in collision.contacts)
+            if (Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
             {
-                if (Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
-                {
-                    groundCollided = true;
-                    break;
-                }
+                groundContactColliders.Add(collision.collider);
+                groundCollided = groundContactColliders.Count > 0;
+                break;
             }
         }
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        if (collision.contacts == null || collision.contacts.Length == 0)
+        {
+            if (groundContactColliders.Remove(collision.collider))
+                groundCollided = groundContactColliders.Count > 0;
+            return;
+        }
+
+        bool hasGroundContact = false;
+        foreach (ContactPoint contact in collision.contacts)
+        {
+            if (Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
+            {
+                hasGroundContact = true;
+                break;
+            }
+        }
+
+        if (hasGroundContact)
+        {
+            groundContactColliders.Add(collision.collider);
+            groundCollided = true;
+        }
+        else
+        {
+            if (groundContactColliders.Remove(collision.collider))
+                groundCollided = groundContactColliders.Count > 0;
+        }
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (groundContactColliders.Remove(collision.collider))
+            groundCollided = groundContactColliders.Count > 0;
     }
 }
