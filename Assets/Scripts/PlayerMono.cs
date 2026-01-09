@@ -11,11 +11,13 @@ public class PlayerMono : MonoBehaviour
     public int health = 100;
     public float armor = 1;
     const float speed = 3f; 
-    public int speedMultiplier = 1;
+    public float speedMultiplier = 0.5f;
 
     public float maxSpeed = 5f;
 
-    Vector3 inputDirection = Vector3.zero;
+    public float idleDrag = 8f;
+
+    public Vector3 inputDirection = Vector3.zero;
 
     void Start()
     {
@@ -42,6 +44,10 @@ public class PlayerMono : MonoBehaviour
         {
             dir += Vector3.right;
         }
+        //if (Input.GetKey(KeyCode.Space))
+        //{
+        //    dir += Vector3.up;
+        //}
 
         inputDirection = dir.normalized;
     }
@@ -51,15 +57,26 @@ public class PlayerMono : MonoBehaviour
         if (rb == null)
             return;
 
-        if (inputDirection != Vector3.zero)
-        {
-            Vector3 accel = inputDirection * speed * speedMultiplier;
-            rb.AddForce(accel, ForceMode.Acceleration);
-        }
-
         Vector3 vel = rb.linearVelocity;
         Vector3 horizontal = new Vector3(vel.x, 0f, vel.z);
         float currentMax = maxSpeed * speedMultiplier;
+
+        if (inputDirection != Vector3.zero)
+        {
+            Vector3 accel = inputDirection * speed * speedMultiplier * 1.3f;
+            rb.AddForce(accel, ForceMode.Acceleration);
+        }
+        else
+        {
+            float factor = Mathf.Clamp01(idleDrag * Time.fixedDeltaTime);
+            Vector3 newHorizontal = Vector3.Lerp(horizontal, Vector3.zero, factor);
+            rb.linearVelocity = new Vector3(newHorizontal.x, vel.y, newHorizontal.z);
+
+            // Update 'vel' and 'horizontal' variables to reflect changed velocity for subsequent clamping.
+            vel = rb.linearVelocity;
+            horizontal = new Vector3(vel.x, 0f, vel.z);
+        }
+
         if (horizontal.magnitude > currentMax)
         {
             Vector3 clampedHorizontal = horizontal.normalized * currentMax;
