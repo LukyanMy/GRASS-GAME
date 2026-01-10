@@ -10,12 +10,13 @@ public class PlayerMono : MonoBehaviour
     Rigidbody rb;
     public int health = 100;
     public float armor = 1;
-    const float speed = 3f;
-    public float jumpConst = 1f;
+    const float speed = 3;
+    public float jumpConst;
+    public float jumpStrength;
 
     public float speedMultiplier = 0.5f;
 
-    public float maxSpeed = 5f;
+    public float maxSpeed;
 
     public float idleDrag = 8f;
 
@@ -85,12 +86,12 @@ public class PlayerMono : MonoBehaviour
         {
             if (jumpConst >= Time.fixedDeltaTime)
             {
-                Vector3 accel = Vector3.up * speed * speedMultiplier * 1.9f;
+                Vector3 accel = Vector3.up * speed * speedMultiplier * jumpStrength;
                 rb.AddForce(accel, ForceMode.Acceleration);
             }
             else
             {
-                Vector3 accel = Vector3.up * 0.5f;
+                Vector3 accel = Vector3.up * jumpStrength/3;
                 rb.AddForce(accel, ForceMode.Acceleration);
             }
         }
