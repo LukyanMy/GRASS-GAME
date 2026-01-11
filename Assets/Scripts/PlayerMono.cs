@@ -11,8 +11,11 @@ public class PlayerMono : MonoBehaviour
     public int health = 100;
     public float armor = 1;
     const float speed = 3;
+    //jump
     public float jumpConst;
     public float jumpStrength;
+
+    //speed
 
     public float speedMultiplier = 0.5f;
 
@@ -21,10 +24,18 @@ public class PlayerMono : MonoBehaviour
     public float idleDrag = 8f;
 
     public Vector3 inputDirection = Vector3.zero;
+    //jump
 
     public float maxJumpHoldTime = 0.35f;
     private float jumpHoldTimer = 0.5f;
     private bool groundCollided = false;
+
+    //angles
+    private Camera cam;
+
+    [SerializeField]
+    private GameObject camera;
+    //ground check
 
     private readonly System.Collections.Generic.HashSet<Collider> groundContactColliders = new System.Collections.Generic.HashSet<Collider>();
 
@@ -32,6 +43,7 @@ public class PlayerMono : MonoBehaviour
     {
         Debug.Log("Player initialized with health: " + health + " and armor: " + armor * 100);
         rb = GetComponent<Rigidbody>();
+        cam = camera.GetComponent<Camera>();
     }
 
     void Update()
@@ -63,6 +75,14 @@ public class PlayerMono : MonoBehaviour
 
     void FixedUpdate()
     {
+        //rotation
+        Vector3 rot = cam.transform.rotation.eulerAngles;
+        transform.rotation = Quaternion.Euler(0, rot.y, 0);
+        Quaternion yaw = Quaternion.Euler(0, rot.y, 0);
+
+
+        //jumping
+
         if (rb == null)
             return;
 
@@ -105,11 +125,12 @@ public class PlayerMono : MonoBehaviour
             horizontal = new Vector3(vel.x, 0f, vel.z);
         }
 
-        // Horizontal 
+        // Horizontal (movement)
         Vector3 horizontalInput = new Vector3(inputDirection.x, 0f, inputDirection.z);
         if (horizontalInput != Vector3.zero)
         {
-            Vector3 accel = horizontalInput.normalized * speed * speedMultiplier * 1.3f;
+            Vector3 move = yaw * horizontalInput.normalized;
+            Vector3 accel = move * (speed * speedMultiplier * 1.3f);
             rb.AddForce(new Vector3(accel.x, 0f, accel.z), ForceMode.Acceleration);
         }
         else
