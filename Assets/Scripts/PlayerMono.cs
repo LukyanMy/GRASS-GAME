@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 public class PlayerMono : MonoBehaviour
 {
     private Keyboard keyboard = Keyboard.current;
-    Rigidbody rb;
+    private Rigidbody rb;
     public int health = 100;
     public float armor = 1;
     const float speed = 3;
@@ -19,7 +19,7 @@ public class PlayerMono : MonoBehaviour
 
     public float speedMultiplier = 0.5f;
 
-    public float maxSpeed;
+    public float maxSpeed = 5f;
 
     public float idleDrag = 8f;
 
@@ -27,23 +27,23 @@ public class PlayerMono : MonoBehaviour
     //jump
 
     public float maxJumpHoldTime = 0.35f;
-    private float jumpHoldTimer = 0.5f;
+    private float jumpHoldTimer = 0f; 
     private bool groundCollided = false;
 
     //angles
-    private Camera cam;
+    [SerializeField] private Camera cam; 
 
-    [SerializeField]
-    private GameObject camera;
+    [SerializeField] private Collider groundRig;
+
     //ground check
-
-    private readonly System.Collections.Generic.HashSet<Collider> groundContactColliders = new System.Collections.Generic.HashSet<Collider>();
+    private readonly HashSet<Collider> groundContactColliders = new HashSet<Collider>();
 
     void Start()
     {
         Debug.Log("Player initialized with health: " + health + " and armor: " + armor * 100);
         rb = GetComponent<Rigidbody>();
-        cam = camera.GetComponent<Camera>();
+        if (cam == null)
+            cam = Camera.main;
     }
 
     void Update()
@@ -75,14 +75,15 @@ public class PlayerMono : MonoBehaviour
 
     void FixedUpdate()
     {
-        //rotation
+        // rotation
+        if (cam == null)
+            return;
+
         Vector3 rot = cam.transform.rotation.eulerAngles;
         transform.rotation = Quaternion.Euler(0, rot.y, 0);
         Quaternion yaw = Quaternion.Euler(0, rot.y, 0);
 
-
-        //jumping
-
+        // jumping
         if (rb == null)
             return;
 
@@ -100,8 +101,8 @@ public class PlayerMono : MonoBehaviour
         {
             jumpHoldTimer = 0f;
         }
-        
-        //jump checker
+
+        // jump checker
         if (isHoldingJump && jumpHoldTimer <= maxJumpHoldTime && groundCollided)
         {
             if (jumpConst >= Time.fixedDeltaTime)
@@ -111,16 +112,12 @@ public class PlayerMono : MonoBehaviour
             }
             else
             {
-                Vector3 accel = Vector3.up * jumpStrength/3;
+                Vector3 accel = Vector3.up * jumpStrength;
                 rb.AddForce(accel, ForceMode.Acceleration);
             }
         }
         else if (isHoldingJump && jumpHoldTimer > maxJumpHoldTime)
         {
-            float vFactor = Mathf.Clamp01(idleDrag * Time.fixedDeltaTime);
-            float newY = Mathf.Lerp(vel.y, 0f, vFactor);
-            rb.linearVelocity = new Vector3(vel.x, newY, vel.z);
-
             vel = rb.linearVelocity;
             horizontal = new Vector3(vel.x, 0f, vel.z);
         }
@@ -159,7 +156,7 @@ public class PlayerMono : MonoBehaviour
 
         foreach (ContactPoint contact in collision.contacts)
         {
-            if (Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
+            if (Vector3.Dot(contact.normal, Vector3.up) > 0.5f && (groundRig == null || collision.collider != groundRig))
             {
                 groundContactColliders.Add(collision.collider);
                 groundCollided = groundContactColliders.Count > 0;
@@ -167,9 +164,9 @@ public class PlayerMono : MonoBehaviour
             }
         }
     }
-
     private void OnCollisionStay(Collision collision)
     {
+
         if (collision.contacts == null || collision.contacts.Length == 0)
         {
             if (groundContactColliders.Remove(collision.collider))
