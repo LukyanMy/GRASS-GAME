@@ -15,7 +15,7 @@ public class GrassMono : MonoBehaviour
     public GameObject[] tiles;
     public int amountOfTiles = 5;
 
-    public float connectionRadius = 1f;
+    public float connectionRadius = 1.1f;
 
     // Shared material for all connection line
     private Material _connectionMaterial;
@@ -23,10 +23,34 @@ public class GrassMono : MonoBehaviour
     // Container for tiles in the hierarchy
     private GameObject _tilesParent;
 
+    // Red dot texture/sprite for tile visuals
+    private Texture2D _dotTexture;
+    private Sprite _dotSprite;
+
+    // Configurable dot appearance
+    public int dotTextureSize = 32;
+    public float dotDisplaySize = 0.2f;
+
     private GameObject CreateTile(string name, Vector3 position)
     {
         var go = new GameObject(name);
         go.transform.position = position;
+
+        // Parent under Tiles container for organization
+        if (_tilesParent != null)
+            go.transform.SetParent(_tilesParent.transform, worldPositionStays: true);
+
+        // Add a SpriteRenderer and assign the generated red-dot sprite
+        if (_dotSprite != null)
+        {
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = _dotSprite;
+            sr.color = Color.red;
+            // Ensure dots render above other geometry by default
+            sr.sortingOrder = 100;
+            // Scale so circle fits desired world size
+            go.transform.localScale = new Vector3(dotDisplaySize, dotDisplaySize, dotDisplaySize);
+        }
 
         _createdTiles.Add(go);
         return go;
@@ -54,6 +78,10 @@ public class GrassMono : MonoBehaviour
         _connectionMaterial = new Material(Shader.Find("Sprites/Default"));
         line.startWidth = 0.1f;
         line.endWidth = 0.1f;
+
+        // Generate red dot texture and sprite
+        GenerateRedDotSprite(Mathf.Max(8, dotTextureSize));
+
         tilesAdder();
     }
 
@@ -61,18 +89,18 @@ public class GrassMono : MonoBehaviour
     {
         for (int j = 0; j < amountOfTiles; j++)
         {
-            float constant = j * (Mathf.Sqrt(2f) + 1);
-            for (int i = 0; i < amountOfTiles; i += 3)
+            for (int i = 0; i < amountOfTiles; i++)
             {
-                CreateTile("hexTileM1", new Vector3(i, 0f, j));
-                CreateTile("hexTileT", new Vector3(Mathf.Sqrt(2f) / 2f + i + 1, 0f, Mathf.Sqrt(2f) / 2f + j));
-                CreateTile("hexTileT", new Vector3(Mathf.Sqrt(2f) / 2f + i + 2, 0f, Mathf.Sqrt(2f) / 2f + j));
-            }
-            for (int i = 0; i < amountOfTiles; i += 3)
-            {
-                CreateTile("hexTileM1", new Vector3(i, 0f, -1 + j));
-                CreateTile("hexTileT", new Vector3(Mathf.Sqrt(2f) / 2f + i + 1, 0f, -Mathf.Sqrt(2f) / 2f - 1 + j));
-                CreateTile("hexTileT", new Vector3(Mathf.Sqrt(2f) / 2f + i + 2, 0f, -Mathf.Sqrt(2f) / 2f - 1 + j));
+                if (i != 0 && i % 2 == 1)
+                {
+                    CreateTile("hexTileM1", new Vector3(1.7320508f * i, 0f, Mathf.Sqrt(3) * j + Mathf.Sqrt(3) / 2));
+                    //CreateTile("hexTileT1", new Vector3(0.33602540f + i, 0f, Mathf.Sqrt(3) * j));
+                }
+                else
+                {
+                    CreateTile("hexTileM2", new Vector3(1.7320508f * i + 1, 0f, Mathf.Sqrt(3) * j + Mathf.Sqrt(3) / 2));
+                    CreateTile("hexTileT2", new Vector3(0.33602540f + i, 0f, Mathf.Sqrt(3) * j));
+                }    
             }
         }
 
@@ -107,6 +135,39 @@ public class GrassMono : MonoBehaviour
                 }
             }
         }
+    }
+
+    // Generates a circular red texture and creates a Sprite from it.
+
+    private void GenerateRedDotSprite(int size)
+    {
+        int s = Mathf.Max(8, size);
+        var tex = new Texture2D(s, s, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode = TextureWrapMode.Clamp;
+
+        float cx = (s - 1) * 0.5f;
+        float cy = (s - 1) * 0.5f;
+        float radius = s * 0.5f;
+
+        for (int y = 0; y < s; y++)
+        {
+            for (int x = 0; x < s; x++)
+            {
+                float dx = x - cx;
+                float dy = y - cy;
+                float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                float a = Mathf.Clamp01((radius - dist) + 0.5f);
+                a = Mathf.SmoothStep(0f, 1f, a);
+                Color col = new Color(1f, 0f, 0f, a);
+                tex.SetPixel(x, y, col);
+            }
+        }
+
+        tex.Apply();
+
+        _dotTexture = tex;
+        _dotSprite = Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
     }
 
     // used to store and draw lines (help)
