@@ -15,7 +15,7 @@ public class GrassMono : MonoBehaviour
     public GameObject[] tiles;
     public int amountOfTiles = 5;
 
-    public float connectionRadius = 1.1f;
+    public float connectionRadius = 1f;
 
     // Shared material for all connection line
     private Material _connectionMaterial;
@@ -91,23 +91,17 @@ public class GrassMono : MonoBehaviour
         {
             for (int i = 0; i < amountOfTiles; i++)
             {
-                if (i != 0 && i % 2 == 1)
-                {
-                    CreateTile("hexTileM1", new Vector3(1.7320508f * i, 0f, Mathf.Sqrt(3) * j + Mathf.Sqrt(3) / 2));
-                    //CreateTile("hexTileT1", new Vector3(0.33602540f + i, 0f, Mathf.Sqrt(3) * j));
-                }
-                else
-                {
-                    CreateTile("hexTileM2", new Vector3(1.7320508f * i + 1, 0f, Mathf.Sqrt(3) * j + Mathf.Sqrt(3) / 2));
-                    CreateTile("hexTileT2", new Vector3(0.33602540f + i, 0f, Mathf.Sqrt(3) * j));
-                }    
+                    CreateTile("hexTileT1", new Vector3(Mathf.Sqrt(3) * i + Mathf.Sqrt(3) / 2, 0, j * (Mathf.Sqrt(3) + 1)));
+                    CreateTile("hexTileT2", new Vector3(Mathf.Sqrt(3) * i, 0, j * (Mathf.Sqrt(3) + 1) + 0.5f));
+                    CreateTile("hexTileT3", new Vector3(Mathf.Sqrt(3) * i, 0, j * (Mathf.Sqrt(3) + 1) + Mathf.Sqrt(3) / 2 + 0.5f));
+                    CreateTile("hexTileT4", new Vector3(Mathf.Sqrt(3) * i + Mathf.Sqrt(3) / 2, 0,j * (Mathf.Sqrt(3) + 1) + 2));
             }
         }
 
         tiles = _createdTiles.ToArray();
         Debug.Log(tiles.Length);
 
-        tilesConnector(tiles);
+        tilesConnector(tiles); 
     }
 
     private void tilesConnector(GameObject[] tiles)

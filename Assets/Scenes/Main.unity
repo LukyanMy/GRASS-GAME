@@ -344,7 +344,6 @@ GameObject:
   - component: {fileID: 854351930}
   - component: {fileID: 854351934}
   - component: {fileID: 854351935}
-  - component: {fileID: 854351936}
   - component: {fileID: 854351937}
   m_Layer: 0
   m_Name: PlayerBody
@@ -497,27 +496,6 @@ MonoBehaviour:
   maxJumpHoldTime: 0.6
   cam: {fileID: 0}
   groundRig: {fileID: 0}
---- !u!135 &854351936
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 854351929}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.33493137
-  m_Center: {x: 0, y: -0.66506886, z: 0}
 --- !u!114 &854351937
 MonoBehaviour:
   m_ObjectHideFlags: 0

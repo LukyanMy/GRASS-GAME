@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -10,38 +8,38 @@ public class PlayerMono : MonoBehaviour
     private Rigidbody rb;
     public int health = 100;
     public float armor = 1;
-    const float speed = 3;
-    //jump
+    private const float speed = 3f;
+
+    // jump
     public float jumpConst;
     public float jumpStrength;
 
-    //speed
-
+    // speed
     public float speedMultiplier = 0.5f;
-
     public float maxSpeed = 5f;
-
     public float idleDrag = 8f;
 
     public Vector3 inputDirection = Vector3.zero;
-    //jump
 
     public float maxJumpHoldTime = 0.35f;
-    private float jumpHoldTimer = 0f; 
+    private float jumpHoldTimer = 0f;
     private bool groundCollided = false;
 
-    //angles
-    [SerializeField] private Camera cam; 
+    // angles
+    [SerializeField] private Camera cam;
 
     [SerializeField] private Collider groundRig;
 
-    //ground check
+    // ground check
     private readonly HashSet<Collider> groundContactColliders = new HashSet<Collider>();
 
     void Start()
     {
         Debug.Log("Player initialized with health: " + health + " and armor: " + armor * 100);
         rb = GetComponent<Rigidbody>();
+        if (rb == null)
+            Debug.LogError("Rigidbody component missing on PlayerMono.");
+
         if (cam == null)
             cam = Camera.main;
     }
@@ -49,26 +47,11 @@ public class PlayerMono : MonoBehaviour
     void Update()
     {
         Vector3 dir = Vector3.zero;
-        if (Input.GetKey(KeyCode.W))
-        {
-            dir += Vector3.forward;
-        } 
-        if (Input.GetKey(KeyCode.S))
-        {
-            dir += Vector3.back;
-        }
-        if (Input.GetKey(KeyCode.A))
-        {
-            dir += Vector3.left;
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            dir += Vector3.right;
-        }
-        if (Input.GetKey(KeyCode.Space))
-        {
-            dir += Vector3.up;
-        }
+        if (Input.GetKey(KeyCode.W)) dir += Vector3.forward;
+        if (Input.GetKey(KeyCode.S)) dir += Vector3.back;
+        if (Input.GetKey(KeyCode.A)) dir += Vector3.left;
+        if (Input.GetKey(KeyCode.D)) dir += Vector3.right;
+        if (Input.GetKey(KeyCode.Space)) dir += Vector3.up;
 
         inputDirection = dir.normalized;
     }
@@ -76,17 +59,14 @@ public class PlayerMono : MonoBehaviour
     void FixedUpdate()
     {
         // rotation
-        if (cam == null)
+        if (cam == null || rb == null)
             return;
 
         Vector3 rot = cam.transform.rotation.eulerAngles;
-        transform.rotation = Quaternion.Euler(0, rot.y, 0);
-        Quaternion yaw = Quaternion.Euler(0, rot.y, 0);
+        transform.rotation = Quaternion.Euler(0f, rot.y, 0f);
+        Quaternion yaw = Quaternion.Euler(0f, rot.y, 0f);
 
-        // jumping
-        if (rb == null)
-            return;
-
+        // Use local velocity variables (do not reference instance fields in initializers)
         Vector3 vel = rb.linearVelocity;
         Vector3 horizontal = new Vector3(vel.x, 0f, vel.z);
         float currentMax = maxSpeed * speedMultiplier;
@@ -136,12 +116,12 @@ public class PlayerMono : MonoBehaviour
             Vector3 newHorizontal = Vector3.Lerp(horizontal, Vector3.zero, factor);
             rb.linearVelocity = new Vector3(newHorizontal.x, vel.y, newHorizontal.z);
 
-            // Update 'vel' and 'horizontal'
+            // Update local vel and horizontal after changing velocity
             vel = rb.linearVelocity;
             horizontal = new Vector3(vel.x, 0f, vel.z);
         }
 
-        // horizontal speed
+        // horizontal speed clamp
         if (horizontal.magnitude > currentMax)
         {
             Vector3 clampedHorizontal = horizontal.normalized * currentMax;
@@ -164,9 +144,9 @@ public class PlayerMono : MonoBehaviour
             }
         }
     }
+
     private void OnCollisionStay(Collision collision)
     {
-
         if (collision.contacts == null || collision.contacts.Length == 0)
         {
             if (groundContactColliders.Remove(collision.collider))
